@@ -1,0 +1,79 @@
+<th:block th:fragment="memberRoleModals(memberList, bandId)">
+    <th:block th:each="member : ${memberList}">
+
+        <div class="modal fade" th:id="'delegateModal-' + ${member.id}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header"><h5 class="modal-title">리더 위임</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        리더를 위임하면 <strong>당신은 '멤버' 역할</strong>이 되며 밴드 관리 권한이 사라집니다.<br>
+                        정말 위임하시겠습니까?
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                        <a th:href="@{|/band/leader/${bandId}/${member.id}|}" class="btn btn-primary">위임하기</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" th:id="'assignStaffModal-' + ${member.id}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header"><h5 class="modal-title">스탭 임명</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        스탭에게는 다음과 같은 권한이 부여됩니다:<br>
+                        - 밴드 모집글 작성<br>
+                        - 리더 탈퇴 시 자동 위임 대상<br><br>
+                        이 멤버를 <strong>스탭으로 임명</strong>하시겠습니까?
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                        <a th:href="@{|/band/staff/${bandId}/${member.id}|}" class="btn btn-primary">임명하기</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" th:id="'removeStaffModal-' + ${member.id}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header"><h5 class="modal-title">스탭 해임</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        이 멤버를 <strong>스탭에서 해임</strong>하시겠습니까?<br>
+                        더 이상 모집글 작성이나 위임 대상이 아닙니다.
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                        <a th:href="@{|/band/staff/${bandId}/${member.id}|}" class="btn btn-danger">해임하기</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" th:id="'kickModal-' + ${member.id}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header"><h5 class="modal-title">멤버 강퇴</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        이 멤버를 정말 <strong>강퇴</strong>하시겠습니까?<br>
+                        강퇴 시 밴드에서 자동으로 탈퇴됩니다.
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                        <a th:href="@{|/band/kick/${bandId}/${member.id}|}" class="btn btn-danger">강퇴하기</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </th:block>
+</th:block>

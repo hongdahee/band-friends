@@ -1,0 +1,165 @@
+<html layout:decorate="~{layout}">
+<th:block layout:fragment="style">
+  <link rel="stylesheet" th:href="@{/css/post/post.css}">
+</th:block>
+<div layout:fragment="content" class="container my-3">
+  <h2 class="border-bottom py-2 d-flex align-items-center">
+    <span th:text="${post.subject}" class="me-3 fw-bold fs-2"></span>
+    <th:block th:if="${category=='recruitment'}">
+    <span th:if="${post.isClosed == false}"
+          class="badge rounded-pill bg-primary text-white fs-6">
+    모집중
+  </span>
+    <span th:if="${post.isClosed == true}"
+          class="badge rounded-pill bg-secondary text-white fs-6">
+    모집 완료
+  </span>
+    </th:block>
+  </h2>
+  <div th:if="${category=='recruitment'}">
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5 class="card-title mb-3">밴드 정보</h5>
+
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item d-flex justify-content-between">
+            <strong>밴드 이름</strong>
+            <span th:text="${post.band.bandName != null ? post.band.bandName : '미지정'}"></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between">
+            <strong>지역</strong>
+            <span th:text="${post.band.regionName}"></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between">
+            <strong>장르</strong>
+            <span th:text="${post.band.genre.displayName}"></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between">
+            <strong>포지션</strong>
+            <span>
+          <th:block th:each="pos, iterStat : ${post.positionList}">
+            <span th:text="${pos.displayName}"></span><span th:if="${!iterStat.last}">, </span>
+          </th:block>
+        </span>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <a th:href="@{|/band/home/${post.band.id}|}" class="card card-body">
+      <h5 class="card-title mb-3">밴드 홈</h5>
+      <div class="band-container">
+      <img th:if="${post.band.profileImg!=null}" th:src="${post.band.profileImg}" alt="Band Profile Photo" class="band-profile" width="30" height="30">
+      <img th:if="${post.band.profileImg==null}" src="/images/band/band_profile.png" alt="Basic Band Profile Photo" class="band-profile" width="30" height="30">
+      <span th:text="${post.band.bandName}"></span>
+      </div>
+    </a>
+  </div>
+
+  <th:block th:if="${category=='band' and isVisible!=true}">
+  <div class="restricted-post-message" th:if="${!isVisible}" style="text-align: center; padding: 2rem; border: 1px solid #ccc; border-radius: 8px; background-color: #fdfdfd;">
+    <p style="font-size: 1.2rem; font-weight: bold; color: #444;">
+      🎸 밴드 멤버에게만 공개된 게시물입니다.<br/>
+      밴드에 가입해 보세요!
+    </p>
+
+    <a th:href="@{/band/home/{id}(id=${post.band.id})}" class="btn-band-home" style="display: inline-block; margin-top: 1rem; padding: 0.6rem 1.2rem; background-color: #4CAF50; color: white; border: none; border-radius: 4px; text-decoration: none;">
+      밴드 홈 바로가기
+    </a>
+  </div>
+  </th:block>
+
+  <div th:if="${isVisible==true}">
+  <div class="card my-3">
+    <div class="card-body">
+      <div id="post-content" class="card-text" style="white-space: pre-wrap;" th:text="${post.content}">
+      </div>
+      <div class="media-scroll-container mb-3 mt-4">
+        <ul th:if="${post.mediaList != null and !post.mediaList.isEmpty()}" class="media-scroll-list">
+          <li th:each="media : ${post.mediaList}" class="media-item">
+            <div th:if="${media.mediaType.name() == 'VIDEO'}">
+              <video class="media-thumb" controls>
+                <source th:src="@{${media.filePath}}" type="video/mp4" />
+                Your browser does not support the video element.
+              </video>
+            </div>
+            <div th:if="${media.mediaType.name() == 'IMAGE'}">
+              <img th:src="@{${media.filePath}}" class="media-thumb" alt="업로드 이미지" />
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="mt-3" th:if="${category=='recruitment'}">
+        <a th:href="@{|/recruitment/apply/${post.id}|}"
+           th:if="${!post.isClosed}"
+           class="btn btn-primary px-4 py-2 fw-semibold shadow-sm">
+          🎵 밴드 지원하기
+        </a>
+        <span th:if="${post.isClosed}"
+              class="btn btn-dark px-4 py-2 fw-semibold shadow-sm text-white"
+              style="opacity: 0.6; cursor: not-allowed;">
+   ⛔ 지원 마감
+</span>
+      </div>
+      <div class="d-flex justify-content-end align-items-start gap-3">
+
+        <div th:if="${post.modifiedAt != null}" class="bg-light text-dark rounded p-2 text-start">
+          <div class="fw-semibold mb-1 small text-secondary">수정됨</div>
+          <div class="small" th:text="${#temporals.format(post.modifiedAt, 'yyyy-MM-dd HH:mm')}"></div>
+        </div>
+
+        <div class="bg-light text-dark rounded p-2 text-start d-flex align-items-center gap-2">
+
+          <img th:if="${post.author.profileImg == null}" src="/user/blank_profile.png" alt="프로필 이미지"
+               class="rounded-circle border" width="32" height="32" style="object-fit: cover;">
+          <img th:if="${post.author.profileImg != null}" th:src="${post.author.profileImg}" alt="프로필 이미지"
+               class="rounded-circle border" width="32" height="32" style="object-fit: cover;">
+
+          <div>
+            <div class="fw-semibold small" th:text="${post.author.nickname}">작성자</div>
+            <div class="small text-muted" th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="my-3">
+        <a th:href="@{|/${category}/like/${post.id}|}" class="recommend btn btn-sm btn-outline-secondary">
+          추천
+          <span class="badge rounded-pill bg-success" th:text="${#lists.size(post.likes)}"></span>
+        </a>
+        <a th:href="@{|/${category}/modify/${post.id}|}" class="btn btn-sm btn-outline-secondary"
+           sec:authorize="isAuthenticated()"
+           th:if="${post.author != null and #authentication.getPrincipal().getUsername() == post.author.username}"
+           th:text="수정"></a>
+        <a href="javascript:void(0);" th:data-uri="@{|/${category}/delete/${post.id}|}"
+           class="delete btn btn-sm btn-outline-secondary" sec:authorize="isAuthenticated()"
+           th:if="${post.author != null and #authentication.getPrincipal().getUsername() == post.author.username}"
+           th:text="삭제"></a>
+      </div>
+      </div>
+    </div>
+  <div th:replace="~{post_reply :: replyFragment}"></div>
+    </div>
+  </div>
+</div>
+<script layout:fragment="script" type='text/javascript'>
+  const delete_elements = document.getElementsByClassName("delete");
+  Array.from(delete_elements).forEach(function(element) {
+      element.addEventListener('click', function() {
+          if(confirm("정말로 삭제하시겠습니까?")) {
+              location.href = this.dataset.uri;
+          };
+      });
+  });
+
+<!--function autolink(id) {-->
+<!--		var container = document.getElementById(id);-->
+<!--		var doc = container.innerHTML;-->
+<!--		var regURL = new RegExp("(http|https|ftp|telnet|news|irc)://([-/.a-zA-Z0-9_~#%$?&=:200-377()]+)","gi");-->
+<!--		container.innerHTML = doc.replace(regURL,"<a class='artist-portfolio' href='$1://$2' target='_blank'>$1://$2</a>");-->
+<!--        }-->
+
+<!--        autolink("post-content");-->
+<!--        autolink("reply-content");-->
+</script>
+</html>

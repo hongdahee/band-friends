@@ -1,0 +1,44 @@
+<html layout:decorate="~{layout}">
+<div layout:fragment="content" class="container my-5">
+
+    <div class="mb-4 text-center">
+        <h3 class="fw-bold text-primary">📝 밴드 가입 신청 관리</h3>
+        <p class="text-muted">밴드를 선택하면 해당 밴드의 가입 신청 목록이 표시됩니다.</p>
+    </div>
+
+    <div class="mb-4">
+        <label for="band" class="form-label fw-semibold">밴드 목록</label>
+        <select id="band" name="band" class="form-select">
+            <option value="" disabled selected>밴드를 선택하세요</option>
+            <option th:each="bandDto : ${bandList}"
+                    th:value="${bandDto.band.id}"
+                    th:text="${bandDto.band.bandName} + ' : 새 신청 ' + ${bandDto.newApplyCount} + '건'">
+            </option>
+        </select>
+    </div>
+
+    <div id="applyList" class="mt-4">
+    </div>
+
+    <script>
+        document.getElementById("band").addEventListener("change", function () {
+          var bandId = this.value;
+
+          if (bandId) {
+            fetch('/management/apply/list?bandId=' + bandId)
+              .then(response => response.text())
+              .then(html => {
+                document.getElementById('applyList').innerHTML = html;
+              })
+              .catch(error => {
+                console.error('Error fetching band details:', error);
+                document.getElementById('applyList').innerHTML =
+                  '<div class="alert alert-danger">불러오는 중 오류가 발생했습니다.</div>';
+              });
+          } else {
+            document.getElementById('applyList').innerHTML = '';
+          }
+        });
+    </script>
+</div>
+</html>

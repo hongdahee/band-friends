@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" th:href="@{/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/common/common.css}">
+    <th:block layout:fragment="style"></th:block>
+    <title>Band Project</title>
+</head>
+<body>
+<nav th:replace="~{navbar :: navbarFragment}"></nav>
+<th:block layout:fragment="content"></th:block>
+<script th:src="@{/bootstrap.bundle.min.js}"></script>
+<th:block layout:fragment="script"></th:block>
+</body>
+</html>

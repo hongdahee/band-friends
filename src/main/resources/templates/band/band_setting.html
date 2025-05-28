@@ -1,0 +1,151 @@
+<div th:fragment="bandSettingFragment">
+  <!-- ✅ 리더일 경우만: 밴드 정보 수정 폼 + 이미지 업로드 -->
+  <div th:if="${isLeader}">
+    <div class="card mb-4">
+      <div class="card-header">밴드 정보 수정</div>
+      <div class="card-body">
+        <!-- 프로필 이미지 + 업로드 -->
+        <div class="mb-4 text-center">
+          <img id="preview-image"
+               th:src="${band.profileImg == null} ? '/images/band/band_profile.png' : ${band.profileImg}" alt="프로필 이미지"
+               class="rounded border" style="width: 120px; height: 120px; object-fit: cover;">
+          <div class="mt-2">
+            <form th:object="${bandProfileForm}" onsubmit="return checkProfileImage();" th:action="@{|/band/upload/profile/${band.id}|}" method="post" enctype="multipart/form-data">
+              <input id="image-input" th:field="*{profileImg}" type="file" name="profileImage" class="form-control form-control-sm mb-2" style="max-width: 300px; margin: 0 auto;">
+              <button type="submit" class="btn btn-sm btn-outline-primary">프로필 사진 업로드</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- 입력 폼 -->
+        <form th:object="${bandForm}" th:action="@{|/band/update/${band.id}|}" method="post">
+          <div class="mb-3">
+            <label class="form-label">밴드 이름</label>
+            <input type="text" th:field="*{bandName}" class="form-control form-control-sm" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">지역</label>
+            <p th:text="${band.regionName}" class="form-control form-control-sm">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">선호 장르</label>
+            <select name="genre" class="form-select form-select-sm">
+              <option th:each="genre : ${genreList}" th:value="${genre}" th:text="${genre.displayName}"
+                      th:selected="${genre == currentGenre}"
+              ></option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">가입 질문</label>
+            <textarea class="form-control form-control-sm" rows="2" th:field="*{question}" required></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-sm">밴드 정보 수정</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔻 밴드 탈퇴 / 삭제 카드 -->
+  <div class="card border-danger">
+    <div class="card-header text-danger">밴드 설정</div>
+    <div class="card-body">
+      <p class="text-muted mb-3" th:if="${isLeader}">
+        밴드를 탈퇴하거나 삭제할 수 있습니다. 삭제 시 모든 정보가 사라집니다.
+      </p>
+      <p class="text-muted mb-3" th:unless="${isLeader}">
+        밴드를 탈퇴할 수 있습니다. 삭제는 리더만 가능합니다.
+      </p>
+
+      <!-- 🔘 밴드 탈퇴 버튼 (모달 띄움) -->
+      <button type="button" class="btn btn-outline-secondary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#quitBandModal">
+        밴드 탈퇴
+      </button>
+
+      <!-- 🔐 밴드 삭제 버튼 (리더만, 모달 띄움) -->
+      <button type="button" th:if="${isLeader}" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteBandModal">
+        밴드 삭제
+      </button>
+    </div>
+  </div>
+
+  <!-- ✅ 밴드 탈퇴 모달 -->
+  <div class="modal fade" id="quitBandModal" tabindex="-1" aria-labelledby="quitBandModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h5 class="modal-title" id="quitBandModalLabel">밴드 탈퇴 확인</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          정말 밴드를 탈퇴하시겠습니까?<br>밴드를 탈퇴하면 활동 기록과 연결이 해제됩니다.
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <a th:href="@{|/band/quit/${band.id}|}">
+            <button type="submit" class="btn btn-outline-danger">탈퇴하기</button>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ 밴드 삭제 모달 (리더 전용) -->
+  <div class="modal fade" id="deleteBandModal" tabindex="-1" aria-labelledby="deleteBandModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteBandModalLabel">밴드 삭제 확인</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body text-danger">
+          이 작업은 되돌릴 수 없습니다.<br><strong>정말 밴드를 삭제하시겠습니까?</strong><br>
+          모든 게시물과 구성원이 삭제됩니다.
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <a th:href="@{|/band/delete/${band.id}|}">
+            <button type="submit" class="btn btn-danger">삭제하기</button>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function checkProfileImage() {
+   const fileInput = document.getElementById('image-input');
+   if (!fileInput.files || fileInput.files.length === 0) {
+     alert('이미지 파일을 선택해주세요.');
+     return false;
+   }
+   return true;
+ }
+
+   document.getElementById('image-input').addEventListener('change', function (e) {
+     const file = e.target.files[0];
+     const preview = document.getElementById('preview-image');
+
+     if (file) {
+       const reader = new FileReader();
+
+       reader.onload = function (e) {
+         preview.src = e.target.result;
+       };
+
+       reader.readAsDataURL(file);
+     }
+   });
+  </script>
+</div>

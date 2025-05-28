@@ -1,0 +1,63 @@
+<html layout:decorate="~{layout}">
+<div layout:fragment="content" class="container my-4">
+  <div class="col-md-6 mx-auto">
+    <h3 class="mb-4">프로필 수정</h3>
+    <!-- 프로필 이미지 업로드 폼 -->
+    <form onsubmit="return checkProfileImage();" class="text-center mb-5" th:action="@{/user/info/edit/profile}"
+          method="post" enctype="multipart/form-data">
+      <div class="text-center mb-4 position-relative d-inline-block">
+        <label for="profile" style="cursor:pointer;">
+          <img th:src="${user.profileImg == null} ? '/user/blank_profile.png' : ${user.profileImg}"
+               alt="Profile Photo"
+               class="rounded-circle border"
+               width="120"
+               height="120">
+          <input name="profile" id="profile" type="file" style="display:none;" />
+        </label>
+
+        <div class="position-absolute" style="bottom: 0; right: 0;">
+          <label for="profile" class="btn btn-light rounded-circle d-flex justify-content-center align-items-center"
+                 style="width: 30px; height: 30px; padding: 0; border: none; box-shadow: 0 0 3px rgba(0,0,0,0.2);">
+            <img src="/user/profile_edit.png" style="width: 70%; height: 70%;" />
+          </label>
+        </div>
+      </div>
+      <div class="text-center">
+        <button type="submit" class="btn btn-outline-secondary btn-sm mt-2">프로필 업로드</button>
+      </div>
+    </form>
+
+    <form th:object="${userEditForm}" th:action="@{/user/info/edit/nickname}" method="post">
+      <div class="mb-3 text-center">
+        <input th:field="*{nickname}" type="text" class="form-control w-50 d-inline-block" placeholder="닉네임" />
+        <button type="submit" class="btn btn-primary btn-sm ms-2">수정</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function checkProfileImage() {
+      const fileInput = document.getElementById('profile');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert('이미지 파일을 선택해주세요.');
+        return false;
+       }
+      return true;
+    }
+
+document.getElementById('profile').addEventListener('change', function (e) {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      const previewImg = document.querySelector('label[for="profile"] img');
+      if (previewImg) {
+        previewImg.src = event.target.result;
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+});
+  </script>
+</div>
+</html>

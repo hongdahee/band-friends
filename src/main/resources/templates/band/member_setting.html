@@ -1,0 +1,76 @@
+<div th:fragment="memberSettingFragment">
+
+  <!-- ✅ 내 포지션 변경: 항상 보임 -->
+  <div class="card mb-4">
+    <div class="card-header">내 포지션 변경</div>
+    <div class="card-body">
+      <form th:action="@{|/band/modify/position/${band.id}|}" method="post">
+        <div class="input-group">
+          <select name="position" class="form-select form-select-sm">
+            <option th:each="position : ${positionList}" th:value="${position.name()}" th:text="${position.displayName}"
+                    th:selected="${position.name() == currentPosition.name()}"></option>
+          </select>
+          <button type="submit" class="btn btn-sm btn-primary">변경</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ✅ 전체 멤버 관리: 리더만 보임 -->
+  <div th:if="${isLeader}" class="card">
+    <div class="card-header">밴드 멤버 관리</div>
+    <div class="card-body">
+      <table class="table table-sm align-middle">
+        <thead>
+        <tr>
+          <th>이름</th>
+          <th>포지션</th>
+          <th>역할</th>
+          <th>⚙️</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="member : ${memberList}">
+          <td th:text="${member.user.nickname}">닉네임</td>
+          <td th:text="${member.position.displayName}">포지션</td>
+          <td th:text="${member.memberRole.displayName}">역할</td>
+          <td>
+            <div th:if="${member.memberRole.name() != 'LEADER'}" class="d-flex gap-2">
+              <!-- 역할 변경 드롭다운 -->
+              <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                  역할
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <!-- 리더 위임 모달 트리거 -->
+                    <button class="dropdown-item" data-bs-toggle="modal"
+                            th:attr="data-bs-target=${'#delegateModal-' + member.id}">
+                      👑 리더 위임
+                    </button>
+                  </li>
+                  <li>
+                    <!-- 스탭 임명/해임 모달 트리거 -->
+                    <button class="dropdown-item"
+                            th:attr="data-bs-target=${member.memberRole.name() == 'STAFF' ? '#removeStaffModal-' + member.id : '#assignStaffModal-' + member.id}"
+                            data-bs-toggle="modal"
+                            th:text="${member.memberRole.name() == 'STAFF'} ? '🎖️ 스탭 해임' : '🎖️ 스탭 임명'">
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              <button type="button" class="btn btn-sm btn-danger"
+                      data-bs-toggle="modal"
+                      th:attr="data-bs-target=${'#kickModal-' + member.id}">
+                강퇴
+              </button>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div th:replace="band/member_setting_modal :: memberRoleModals(${memberList}, ${band.id})"></div>
+</div>
