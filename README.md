@@ -43,20 +43,28 @@
 ## 상세 화면
 ### 자유게시판
 <img width="1440" alt="스크린샷 2025-05-29 오전 10 20 52" src="https://github.com/user-attachments/assets/fb75f4bb-23e2-441a-b4e4-78b6b683d405" />
+
 ### 자유게시판 글 작성
 <img width="1440" alt="스크린샷 2025-05-29 오전 10 20 05" src="https://github.com/user-attachments/assets/fad026da-cdcc-411e-8b9a-4e3ef84f6091" />
+
 ### 자유게시판 글 상세페이지
 <img width="1440" alt="스크린샷 2025-05-29 오전 10 27 22" src="https://github.com/user-attachments/assets/a8856877-7535-49ac-a98c-5876b6920dea" />
+
 ### 멤버 구인 게시판
 <img width="1440" alt="스크린샷 2025-05-29 오전 10 25 37" src="https://github.com/user-attachments/assets/57031479-7ff8-4ea9-a390-6e087d7f844c" />
+
 ### 멤버 구인 글 상세페이지
 <img width="1440" alt="스크린샷 2025-05-29 오전 10 33 32" src="https://github.com/user-attachments/assets/92a72bc1-2d15-4a73-81fa-91624026ac16" />
+
 ### 밴드 가입 신청
 <img width="1440" alt="스크린샷 2025-05-29 오전 10 31 43" src="https://github.com/user-attachments/assets/36275ae7-bfd4-49d5-a74a-733b5ccca6d3" />
+
 ### 밴드 가입 신청 관리
 <img width="1440" alt="스크린샷 2025-05-29 오전 10 32 25" src="https://github.com/user-attachments/assets/e9cd1929-1c3c-4e81-890b-65b89db0a296" />
+
 ### 밴드 홈
 <img width="1440" alt="스크린샷 2025-05-29 오전 10 34 43" src="https://github.com/user-attachments/assets/64ab5779-d388-4937-8ed2-66f65a10e681" />
+
 ### 밴드 관리
 <img width="1440" alt="스크린샷 2025-05-29 오전 10 35 22" src="https://github.com/user-attachments/assets/7fa42ea8-2802-4d8b-8ff7-61924b086b7c" />
 ### 밴드 멤버 관리
