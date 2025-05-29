@@ -67,9 +67,12 @@
 
 ### 밴드 관리
 <img width="1440" alt="스크린샷 2025-05-29 오전 10 35 22" src="https://github.com/user-attachments/assets/7fa42ea8-2802-4d8b-8ff7-61924b086b7c" />
+
 ### 밴드 멤버 관리
 <img width="1440" alt="스크린샷 2025-05-29 오전 10 35 48" src="https://github.com/user-attachments/assets/46be895c-501a-4207-9b93-52b277ff6df6" />
+
 ### 밴드 그룹채팅, 합주실 지도
 <img width="1440" alt="스크린샷 2025-05-29 오전 10 38 06" src="https://github.com/user-attachments/assets/a5f57523-15bf-4e91-8f91-2211b6ba5f6c" />
+
 ### 위치 인증
 <img width="1440" alt="스크린샷 2025-05-29 오전 10 39 41" src="https://github.com/user-attachments/assets/c3666bf6-eef5-4c91-b06b-f28c346e1f6e" />
