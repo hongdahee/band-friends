@@ -1,0 +1,13 @@
+<html layout:decorate="~{layout}">
+<th:block layout:fragment="style">
+    <link rel="stylesheet" th:href="@{/css/band/chat-room.css}">
+    <link rel="stylesheet" th:href="@{/css/common/common.css}">
+    <link rel="stylesheet" th:href="@{/css/chat/chat.css}">
+</th:block>
+<div layout:fragment="content" id="container" class="my-3 d-flex">
+    <div th:replace="~{chat_room :: chatFragment}"></div>
+    <div id="map-container">
+    <div th:replace="~{map :: mapFragment}"></div>
+    </div>
+</div>
+</html>

@@ -1,0 +1,130 @@
+<div th:fragment="replyFragment" class="my-3">
+  <div class="comments-section my-4">
+    <h5 class="mb-3 fw-semibold">💬 댓글</h5>
+
+    <!-- 댓글 작성 폼 -->
+    <form th:object="${replyForm}" method="post" th:action="@{|/reply/${post.id}|}" class="mb-4">
+      <div class="mb-2">
+        <textarea th:field="*{content}" class="form-control" rows="3" placeholder="댓글을 입력하세요." required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">댓글 작성</button>
+    </form>
+
+    <!-- 댓글 목록 -->
+    <div th:if="${#lists.size(replyList) > 0}">
+      <ul id="commentList" class="list-unstyled">
+        <li th:each="reply : ${replyList}" class="mb-4 border rounded p-3 bg-light">
+          <!-- 부모 댓글 -->
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold text-primary" th:text="${reply.author.nickname}"></span>
+            <small class="text-muted" th:if="${reply.modifiedAt == null}" th:text="${#temporals.format(reply.createdAt, 'yyyy-MM-dd HH:mm')}"></small>
+            <small class="text-muted" th:if="${reply.modifiedAt != null}" th:text="'(수정됨) ' + ${#temporals.format(reply.modifiedAt, 'yyyy-MM-dd HH:mm')}"></small>
+          </div>
+
+          <p th:text="${reply.content}" class="mb-2 reply-content" style="white-space: pre-wrap;"></p>
+
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary response-btn">답글</button>
+            <button class="btn btn-sm btn-outline-secondary edit-btn"
+                    sec:authorize="isAuthenticated()"
+                    th:if="${reply.author != null and #authentication.getPrincipal().getUsername() == reply.author.username}">
+              수정
+            </button>
+            <a href="javascript:void(0);" th:data-uri="@{|/reply/remove/${reply.id}|}"
+               class="btn btn-sm btn-outline-danger delete"
+               sec:authorize="isAuthenticated()"
+               th:if="${reply.author != null and #authentication.getPrincipal().getUsername() == reply.author.username}">
+              삭제
+            </a>
+          </div>
+
+          <!-- 부모 댓글 수정 폼 -->
+          <form th:object="${replyForm}" class="edit-form mt-3" th:action="@{|/reply/modify/${reply.id}|}" method="post" style="display: none;">
+            <textarea th:field="*{content}" class="form-control mb-2 edit-content" rows="3" required></textarea>
+            <button type="submit" class="btn btn-success btn-sm">수정 완료</button>
+          </form>
+
+          <!-- 대댓글 목록 -->
+          <ul class="children-list list-unstyled mt-3 ps-3 border-start">
+            <li th:each="childReply : ${reply.childrenList}" class="mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-secondary" th:text="${childReply.author.nickname}"></span>
+                <small class="text-muted" th:text="${#temporals.format(childReply.createdAt, 'yyyy-MM-dd HH:mm')}"></small>
+              </div>
+              <p th:text="${childReply.content}" class="mb-1 reply-content" style="white-space: pre-wrap;"></p>
+
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary edit-btn"
+                        sec:authorize="isAuthenticated()"
+                        th:if="${childReply.author != null and #authentication.getPrincipal().getUsername() == childReply.author.username}">
+                  수정
+                </button>
+                <a href="javascript:void(0);" th:data-uri="@{|/reply/remove/${childReply.id}|}"
+                   class="btn btn-sm btn-outline-danger delete"
+                   sec:authorize="isAuthenticated()"
+                   th:if="${childReply.author != null and #authentication.getPrincipal().getUsername() == childReply.author.username}">
+                  삭제
+                </a>
+              </div>
+
+              <!-- 대댓글 수정 폼 -->
+              <form th:object="${replyForm}" class="edit-form mt-2" th:action="@{|/reply/modify/${childReply.id}|}" method="post" style="display: none;">
+                <textarea th:field="*{content}" class="form-control mb-2 edit-content" rows="3" required></textarea>
+                <button type="submit" class="btn btn-success btn-sm">수정 완료</button>
+              </form>
+            </li>
+          </ul>
+
+          <!-- 대댓글 작성 폼 -->
+          <form th:object="${replyForm}" th:action="@{|/reply/response/${reply.id}|}" method="post"
+                class="response-form mt-3" style="display: none;">
+            <textarea th:field="*{content}" name="content" class="form-control mb-2" rows="3" placeholder="답글을 입력하세요." required></textarea>
+            <button type="submit" class="btn btn-success btn-sm">답글 작성</button>
+          </form>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 스크립트 -->
+  <script>
+    document.querySelectorAll('.edit-btn').forEach(button => {
+      button.addEventListener('click', function () {
+        const li = this.closest('li');
+        const editForm = li.querySelector('.edit-form');
+        const deleteButton = li.querySelector('.delete');
+        const replyContent = li.querySelector('.reply-content');
+        const editContent = li.querySelector('.edit-content');
+        const responseForm = li.querySelector('.response-form');
+        const responseContent = responseForm ? responseForm.querySelector('textarea') : null;
+
+        editContent.value = replyContent.textContent.trim();
+
+        if (editForm.style.display === 'none') {
+          if (responseForm) responseForm.style.display = 'none';
+          if (responseContent) responseContent.value = '';
+          editForm.style.display = 'block';
+        } else {
+          editForm.style.display = 'none';
+        }
+      });
+    });
+
+    document.querySelectorAll('.response-btn').forEach(button => {
+      button.addEventListener('click', function () {
+        const li = this.closest('li');
+        const responseForm = li.querySelector('.response-form');
+        const editForm = li.querySelector('.edit-form');
+        const responseContent = responseForm.querySelector('textarea');
+
+        if (responseForm.style.display === 'none') {
+          responseForm.style.display = 'block';
+          editForm.style.display = 'none';
+        } else {
+          responseForm.style.display = 'none';
+          responseContent.value = '';
+        }
+      });
+    });
+  </script>
+</div>

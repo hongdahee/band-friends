@@ -1,0 +1,15 @@
+<div th:fragment="applyInfo">
+  <div th:each="apply : ${applyList}" class="card mb-3 shadow-sm">
+    <form method="post" th:action="@{|/management/apply/response/${apply.id}|}" class="card-body">
+      <h5 class="card-title">
+        <span th:text="${apply.user.nickname}"></span>
+        <span class="badge bg-secondary">포지션: <span th:text="${apply.position.displayName}"></span></span>
+      </h5>
+      <p class="card-text">답변: <span th:text="${apply.answer}"></span></p>
+      <div class="d-flex justify-content-end gap-2">
+        <button type="submit" name="response" value="accept" class="btn btn-success btn-sm">수락</button>
+        <button type="submit" name="response" value="reject" class="btn btn-danger btn-sm">거절</button>
+      </div>
+    </form>
+  </div>
+</div>

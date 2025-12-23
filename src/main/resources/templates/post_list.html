@@ -1,0 +1,171 @@
+<html layout:decorate="~{layout}">
+<th:block layout:fragment="style">
+  <link rel="stylesheet" th:href="@{/css/main/main.css}">
+  <link rel="stylesheet" th:href="@{/css/common/common.css}">
+</th:block>
+<div layout:fragment="content" class="container my-3">
+  <div class="row my-3">
+    <div class="col-6">
+      <div class="list-title" th:text="${category=='community' ? '자유게시판' : category=='recruitment' ? '멤버구인' : '밴드'}"></div>
+    </div>
+    <div class="btn-container">
+      <a th:if="${bandId}" th:href="@{|/${category}/create?bandId=${bandId}|}" class="btn create-btn">글 작성</a>
+      <a th:if="${bandId==null}" th:href="@{|/${category}/create|}" class="btn create-btn">글 작성</a>
+      <a th:if="${category == 'recruitment'}" th:href="@{/band/register}" class="btn create-btn">밴드 생성</a>
+    </div>
+    <div class="row g-2 align-items-center mb-4">
+
+      <div th:if="${category=='recruitment'}" class="col-auto">
+        <label for="positionSelect" class="form-label visually-hidden">포지션</label>
+        <select id="positionSelect" name="position" class="form-select form-select-sm rounded-pill px-5">
+          <option value="all">전체</option>
+          <option th:each="position : ${positionList}"
+                  th:value="${position.name()}" th:text="${position.displayName}"
+                  th:selected="${position.name() == selectedPosition}"></option>
+        </select>
+      </div>
+
+      <div th:if="${category=='recruitment'}" class="col-auto">
+        <label for="genreSelect" class="form-label visually-hidden">장르</label>
+        <select id="genreSelect" name="genre" class="form-select form-select-sm rounded-pill px-5">
+          <option th:each="genre : ${genreList}"
+                  th:value="${genre}" th:text="${genre.displayName}"
+                  th:selected="${genre == selectedGenre}"></option>
+        </select>
+      </div>
+
+      <div class="col-6">
+        <label for="search_kw" class="form-label visually-hidden">검색어</label>
+        <div class="input-group">
+          <input type="text" id="search_kw" name="kw" class="form-control" th:value="${kw}" placeholder="검색어를 입력하세요">
+          <button class="btn btn-outline-secondary" type="button" id="btn_search">찾기</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <table class="table">
+    <thead class="table-dark">
+    <tr class="text-center">
+      <th>번호</th>
+      <th style="width:50%">제목</th>
+      <th th:if="${category=='recruitment'}">장르</th>
+      <th>작성자</th>
+      <th>조회수</th>
+      <th>추천수</th>
+      <th>작성일시</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="text-center" th:each="post, loop : ${paging}">
+      <td th:text="${paging.getTotalElements - (paging.number * paging.size) - loop.index}"></td>
+      <td class="text-start">
+        <div>
+        <a th:href="@{|/${category}/detail/${post.id}|}" th:text="${post.subject}">
+        </a>
+        <span th:if="${category=='recruitment' and post.isClosed == false}"
+              class="badge rounded-pill bg-primary ms-2">
+    모집중
+  </span>
+        <span th:if="${category=='recruitment' and post.isClosed == true}"
+              class="badge rounded-pill bg-secondary ms-2">
+    모집 완료
+  </span>
+        <span class="text-danger small ms-2" th:if="${#lists.size(post.replyList) > 0}"
+              th:text="${#lists.size(post.replyList)}">
+            </span>
+        </div>
+        <div th:if="${category=='recruitment'}" class="text-muted small">
+          <span th:text="${post.band.regionName}"></span> ·
+          <th:block th:each="pos, iterStat : ${post.positionList}">
+            <span th:text="${pos.displayName}"></span><span th:if="${!iterStat.last}">, </span>
+          </th:block>
+        </div>
+      </td>
+      <td th:if="${category=='recruitment'}" th:text="${post.band.genre.displayName}"></td>
+      <td><span th:if="${post.author!=null}" th:text="${post.author.nickname}"></span></td>
+      <td th:text="${post.viewCount}"></td>
+      <td th:text="${#lists.size(post.likes)}"></td>
+      <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+    </tr>
+    </tbody>
+  </table>
+  <div th:if="${paging != null and !paging.isEmpty()}">
+    <ul class="pagination justify-content-center">
+      <li class="page-item" th:classappend="${!paging.hasPrevious} ? 'disabled'">
+        <a class="page-link"
+           href="javascript:void(0)" th:data-page="${paging.number-1}">
+          <span>이전</span>
+        </a>
+      </li>
+      <li th:each="page: ${#numbers.sequence(0, paging.totalPages-1)}"
+          th:if="${page >= paging.number-5 and page <= paging.number+5}"
+          th:classappend="${page == paging.number} ? 'active'"
+          class="page-item">
+        <a th:text="${page+1}" class="page-link" href="javascript:void(0)" th:data-page="${page}"></a>
+      </li>
+      <li class="page-item" th:classappend="${!paging.hasNext} ? 'disabled'">
+        <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number+1}">
+          <span>다음</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <form th:action="${category == 'band'} ? @{'/band/' + ${bandId} + '/list'} : @{'/' + ${category} + '/list'}"
+        method="get" id="searchForm">
+    <input type="hidden" id="kw" name="kw" th:value="${kw}">
+    <input type="hidden" id="page" name="page" th:value="${paging.number}">
+    <input th:if="${category=='recruitment'}" type="hidden" id="position" name="position" th:value="${position}">
+    <input th:if="${category=='recruitment'}" type="hidden" id="genre" name="genre" th:value="${genre}">
+  </form>
+</div>
+<script layout:fragment="script" type='text/javascript'>
+  const category = "[[${category}]]";
+const page_elements = document.getElementsByClassName("page-link");
+Array.from(page_elements).forEach(function(element) {
+    element.addEventListener('click', function() {
+        document.getElementById('page').value = this.dataset.page;
+        document.getElementById('searchForm').submit();
+    });
+});
+
+function search(){
+ document.getElementById('kw').value = document.getElementById('search_kw').value;
+ if(category==='recruitment'){
+ document.getElementById('position').value = document.getElementById('positionSelect').value;
+ document.getElementById('genre').value = document.getElementById('genreSelect').value;
+ }
+ document.getElementById('page').value = 0;
+ document.getElementById('searchForm').submit();
+}
+
+const btn_search = document.getElementById("btn_search");
+const search_input = document.getElementById("search_kw");
+
+if(category==='recruitment'){
+const position = document.getElementById("positionSelect");
+const genre = document.getElementById("genreSelect");
+
+position.addEventListener("change", function() {
+ search();
+});
+
+genre.addEventListener("change", function() {
+ search();
+});
+}
+
+btn_search.addEventListener('click', function() {
+   search();
+});
+
+  search_input.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        search();
+}
+});
+
+</script>
+</html>

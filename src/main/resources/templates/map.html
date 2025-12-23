@@ -1,0 +1,217 @@
+<div th:fragment="mapFragment" class="map_wrap" id="map-container">
+  <style>
+    .wrap {position: absolute;left: 0;bottom: 40px;width: 288px;height: 132px;margin-left: -144px;text-align: left;overflow: hidden;font-size: 12px;font-family: 'Malgun Gothic', dotum, '돋움', sans-serif;line-height: 1.5;}
+    .wrap * {padding: 0;margin: 0;}
+    .wrap .info {width: 286px;height: 120px;border-radius: 5px;border-bottom: 2px solid #ccc;border-right: 1px solid #ccc;overflow: hidden;background: #fff;}
+    .wrap .info:nth-child(1) {border: 0;box-shadow: 0px 1px 2px #888;}
+    .info .title {padding: 5px 0 0 10px;height: 30px;background: #eee;border-bottom: 1px solid #ddd;font-size: 18px;font-weight: bold;}
+    .info .close {position: absolute;top: 10px;right: 10px;color: #888;width: 17px;height: 17px;background: url('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/overlay_close.png');}
+    .info .close:hover {cursor: pointer;}
+    .info .body {position: relative;overflow: hidden;}
+    .info .desc {position: relative;margin: 13px 0 0 90px;height: 75px;}
+    .desc .ellipsis {overflow: hidden;text-overflow: ellipsis;white-space: nowrap;}
+    .desc .jibun {font-size: 11px;color: #888;margin-top: -2px;}
+    .info .img {position: absolute;top: 6px;left: 5px;width: 73px;height: 71px;border: 1px solid #ddd;color: #888;overflow: hidden;}
+    .info:after {content: '';position: absolute;margin-left: -12px;left: 50%;bottom: 0;width: 22px;height: 12px;background: url('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/vertex_white.png')}
+    .info .link {color: #5085BB;}
+  </style>
+    <div id="map" style="width:100%;height:100%;border-radius:5px;position:relative;overflow:hidden;"></div>
+    <div id="menu_wrap" class="bg_white">
+      <div class="option">
+        <div style="padding: 0.5rem;">
+          <form id="mapForm">
+            동네/지역명 : <input type="text" th:value="${regionName}" id="keyword" size="15">
+            <button type="submit" class="map-button">검색하기</button>
+          </form>
+          <p style="font-size: 14px; color: gray; margin-top:0.5rem;">
+            ex) '서울시', '마포구', '연남동' 등의 키워드로 검색
+          </p>
+        </div>
+      </div>
+    </div>
+  <script type="text/javascript" th:src="'//dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapApiKey} + '&libraries=services,clusterer,drawing'"></script>
+  <script>
+    const script = document.createElement("script");
+    script.src = `http://dapi.kakao.com/v2/maps/sdk.js?appkey=[[${kakaoMapApiKey}]]&autoload=false&libraries=clusterer,services&`;
+    document.head.appendChild(script);
+
+    script.onload = () => {
+        kakao.maps.load(() => {
+                document.getElementById("mapForm").addEventListener("submit", function(event) {
+                event.preventDefault();
+                searchPlaces();
+                return false;
+    });
+    var dataList = [];
+
+    var currentOverlay = null;
+
+    var infowindow = new kakao.maps.InfoWindow({zIndex:1});
+
+var mapContainer = document.getElementById('map'), // 지도를 표시할 div
+    mapOption = {
+        center: new kakao.maps.LatLng(37.566826, 126.9786567), // 지도의 중심좌표
+        level: 3 // 지도의 확대 레벨
+    };
+
+// 지도를 생성합니다
+var map = new kakao.maps.Map(mapContainer, mapOption);
+
+// 장소 검색 객체를 생성합니다
+var ps = new kakao.maps.services.Places();
+
+searchPlaces();
+
+// 키워드 검색 완료 시 호출되는 콜백함수 입니다
+function placesSearchCB (data, status, pagination) {
+        dataList = [...data, ...dataList];
+        // 검색된 장소 위치를 기준으로 지도 범위를 재설정하기위해
+        // LatLngBounds 객체에 좌표를 추가합니다
+        var bounds = new kakao.maps.LatLngBounds();
+
+        if(dataList.length===0){
+        alert('검색 결과가 존재하지 않습니다.');
+        return;
+        }
+
+        for (var i=0; i<dataList.length; i++) {
+            displayMarker(dataList[i]);
+            bounds.extend(new kakao.maps.LatLng(dataList[i].y, dataList[i].x));
+        }
+
+        // 검색된 장소 위치를 기준으로 지도 범위를 재설정합니다
+        map.setBounds(bounds);
+}
+
+function searchPlaces(){
+              dataList = [];
+              var keyword = document.getElementById('keyword').value;
+              if(!keyword.replace(/^\s+|\s+$/g, '')){
+                  alert('동네 또는 지역명을 입력해주세요!');
+                  return false;
+              }
+              ps.keywordSearch(keyword + ' 음악연습실', practiceSearchCB);
+            }
+
+           // 연습실 검색 완료시 호출되는 콜백함수
+           function practiceSearchCB(data, status, pagination){
+           var keyword = document.getElementById('keyword').value;
+
+              if(status === kakao.maps.services.Status.OK) {
+                // 정상적으로 검색 완료되면 검색 목록, 마커 표출
+                dataList = data;
+              }else if(status === kakao.maps.services.Status.ERROR){
+                  alert('검색 결과 중 오류가 발생했습니다.');
+              }
+              ps.keywordSearch(keyword + ' 합주실', placesSearchCB);
+
+            }
+
+function createPlaceInfo(place, overlay) {
+    const wrapDiv = document.createElement('div');
+    wrapDiv.classList.add('wrap');
+
+    const infoDiv = document.createElement('div');
+    infoDiv.classList.add('info');
+
+    const titleDiv = document.createElement('div');
+    titleDiv.classList.add('title');
+    titleDiv.textContent = place.place_name;
+
+    const closeDiv = document.createElement('div');
+    closeDiv.classList.add('close');
+    closeDiv.title = '닫기';
+    // 클릭 이벤트 핸들러 추가 (클릭하면 해당 요소를 삭제)
+    closeDiv.onclick = function() {
+          overlay.setMap(null);
+    };
+
+    // titleDiv 안에 place.place_name과 closeDiv 추가
+    titleDiv.appendChild(closeDiv);
+
+    const bodyDiv = document.createElement('div');
+    bodyDiv.classList.add('body');
+
+    const descDiv = document.createElement('div');
+    descDiv.classList.add('desc');
+    descDiv.classList.add('mark-desc');
+
+    const ellipsisDiv = document.createElement('div');
+    ellipsisDiv.classList.add('ellipsis');
+    ellipsisDiv.textContent = place.road_address_name;
+
+    const addressDiv = document.createElement('div');
+    addressDiv.classList.add('jibun');
+    addressDiv.classList.add('ellipsis');
+    addressDiv.textContent = `(지번) ${place.address_name}`;
+
+    const phoneDiv = document.createElement('div');
+    phoneDiv.textContent = place.phone;
+
+    const linkDiv = document.createElement('div');
+
+    const linkElement = document.createElement('a');
+    linkElement.href = place.place_url;
+    linkElement.target = "_blank";
+    linkElement.classList.add('link');
+    linkElement.classList.add('mark-link');
+    linkElement.textContent = '바로가기';
+
+    const buttonElement = document.createElement('button');
+    buttonElement.type = 'button';
+    buttonElement.textContent = '채팅방에 공유';
+    buttonElement.onclick = function() {
+        document.getElementById('messageInput').value = place.place_url;
+    };
+
+    linkDiv.appendChild(linkElement);
+    linkDiv.appendChild(buttonElement);
+
+    descDiv.appendChild(ellipsisDiv);
+    descDiv.appendChild(addressDiv);
+    descDiv.appendChild(phoneDiv);
+    descDiv.appendChild(linkDiv);
+
+    bodyDiv.appendChild(descDiv);
+
+    infoDiv.appendChild(titleDiv);
+    infoDiv.appendChild(bodyDiv);
+
+    wrapDiv.appendChild(infoDiv);
+
+    return wrapDiv;
+}
+
+  function displayMarker(data) {
+    var marker = new kakao.maps.Marker({
+    map: map,
+    position: new kakao.maps.LatLng(data.y, data.x)
+    });
+
+    kakao.maps.event.addListener(marker, 'click', function() {
+    var overlay = new kakao.maps.CustomOverlay({
+    map: map,
+    position: marker.getPosition()
+    });
+
+    if(overlay){
+       clickAnotherOverlay(currentOverlay);
+    }
+    currentOverlay = overlay;
+
+    var content = createPlaceInfo(data, overlay);
+
+    overlay.setContent(content);
+    });
+  }
+
+    function clickAnotherOverlay(overlay){
+      if(overlay){
+      overlay.setMap(null);
+      }
+    }
+
+        });
+    };
+  </script>
+  </div>

@@ -1,0 +1,162 @@
+<div th:fragment="chatFragment" style="flex:1;" class="chat-container">
+  <div>
+    <form id="chatForm">
+      <div class="messages" id="messages">
+        <ul>
+          <th:block th:if="${not #lists.isEmpty(messageList)}" th:each="message, iterStat : ${messageList}">
+            <div th:if="${iterStat.index == 0 or #temporals.format(message.createdAt, 'yyyy-MM-dd') != #temporals.format(messageList[iterStat.index - 1].createdAt, 'yyyy-MM-dd')}"
+                 class="date-divider"
+                 th:text="${#temporals.format(message.createdAt, 'yyyy년 M월 d일')}">
+            </div>
+
+            <li class="message-item" th:classappend="${message.senderUniqueId} == ${user.uniqueId} ? 'my-message' : ''"
+                th:attr="data-created-at=${message.createdAt}">
+              <div class="sender" th:text="${message.nickname}"></div>
+              <div class="message-bubble">
+                <div class="message-content" th:utext="${message.message}"></div>
+                <span class="message-time" th:text="${#temporals.format(message.createdAt, 'HH:mm')}"></span>
+              </div>
+            </li>
+          </th:block>
+        </ul>
+      </div>
+      <div class="input-area">
+        <input type="text" id="messageInput" placeholder="메시지를 입력하세요..." />
+        <button type="submit" id="sendButton">전송</button>
+      </div>
+    </form>
+  </div>
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+  <script>
+    const chatRoomId = [[${id}]];
+    const socket = new WebSocket("http://localhost:8081/chat/websocket");
+    const stompClient = Stomp.over(socket);
+    const currentUserId = '[[${user.uniqueId}]]';
+
+    let lastMessageDateObj = null;
+
+window.addEventListener("DOMContentLoaded", () => {
+  const messageItems = document.querySelectorAll(".message-item");
+
+  if (messageItems.length > 0) {
+    const lastItem = messageItems[messageItems.length - 1];
+    const timeAttr = lastItem.getAttribute("data-created-at"); // 날짜 속성
+    if (timeAttr) {
+      const utc = new Date(timeAttr);
+      lastMessageDateObj = new Date(utc.getTime() + (9 * 60 * 60 * 1000)); // UTC → KST
+      lastMessageDateObj.setHours(0, 0, 0, 0); // 날짜만 남기기
+    }
+  }
+});
+
+    function sendMessage() {
+      const message = document.getElementById("messageInput").value;
+      if (message.trim()) {
+        const chatMessage = {
+          senderUniqueId: currentUserId,
+          nickname: '[[${user.nickname}]]',
+          message: message,
+          createdAt: new Date().toISOString()
+        };
+        stompClient.send(`/pub/${chatRoomId}/message`, {}, JSON.stringify(chatMessage));
+        document.getElementById("messageInput").value = "";
+      }
+    }
+
+function onMessageReceived(message) {
+    const chatMessage = JSON.parse(message.body);
+  const messageDateObj = new Date(chatMessage.createdAt);
+
+   const messagesContainer = document.getElementById("messages");
+
+  // 날짜만 추출해서 자정으로 맞춤
+  const messageDateOnly = new Date(
+    messageDateObj.getFullYear(),
+    messageDateObj.getMonth(),
+    messageDateObj.getDate()
+  );
+
+  if (
+    lastMessageDateObj === null ||
+    messageDateOnly.getTime() > lastMessageDateObj.getTime()
+  ) {
+
+    const divider = document.createElement("div");
+    divider.className = "date-divider";
+
+    const utcDate = new Date(chatMessage.createdAt);
+    const kstDate = new Date(utcDate.getTime() + (9 * 60 * 60 * 1000));
+
+    divider.textContent = kstDate.toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    messagesContainer.appendChild(divider);
+
+    lastMessageDateObj = messageDateOnly;
+  }
+
+  const li = document.createElement('li');
+  li.classList.add("message-item");
+
+  if (currentUserId === chatMessage.senderUniqueId) {
+    li.classList.add("my-message");
+  }
+
+  const senderElement = document.createElement("div");
+  senderElement.classList.add("sender");
+  senderElement.textContent = `${chatMessage.nickname}`;
+
+  const timeElement = document.createElement("span");
+  timeElement.classList.add("message-time");
+
+  const utcDate = new Date(chatMessage.createdAt);
+  const kstDate = new Date(utcDate.getTime() + (9 * 60 * 60 * 1000));
+
+  timeElement.textContent = kstDate.toLocaleTimeString('ko-KR', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false
+});
+
+  const messageBubbleEl = document.createElement("div");
+  messageBubbleEl.classList.add("message-bubble");
+
+  const messageElement = document.createElement("div");
+  messageElement.classList.add("message-content");
+  messageElement.innerHTML = autoLink(chatMessage.message);
+
+  messageBubbleEl.appendChild(messageElement);
+  messageBubbleEl.appendChild(timeElement);
+  li.appendChild(senderElement);
+  li.appendChild(messageBubbleEl);
+  messagesContainer.appendChild(li);
+
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+    stompClient.connect({}, function(frame) {
+      stompClient.subscribe(`/sub/${chatRoomId}`, onMessageReceived);
+    });
+
+    document.getElementById("chatForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      sendMessage();
+    });
+
+    window.onload = function() {
+      document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+    };
+
+    function autoLink(message) {
+  const urlRegex = /((https?:\/\/|www\.)[^\s]+)/g;
+  return message.replace(urlRegex, function(url) {
+    let href = url.startsWith("http") ? url : "https://" + url;
+    return `<a href="${href}" target="_blank">${url}</a>`;
+  });
+}
+  </script>
+</div>

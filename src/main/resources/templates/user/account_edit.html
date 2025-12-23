@@ -1,0 +1,40 @@
+<html layout:decorate="~{layout}">
+<th:block layout:fragment="style">
+  <link rel="stylesheet" th:href="@{/css/common/common.css}">
+</th:block>
+<div layout:fragment="content" class="container my-5">
+  <h2 class="mb-5 list-title">계정 관리</h2>
+
+  <div class="d-flex justify-content-center">
+    <button type="button" class="btn btn-danger btn-block mt-4" data-bs-toggle="modal" data-bs-target="#deleteModal">
+      회원 탈퇴
+    </button>
+  </div>
+
+  <!-- 탈퇴 확인 모달 -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteModalLabel">회원 탈퇴 확인</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <p>정말 탈퇴하시겠습니까?<br>
+            탈퇴하면 회원 정보는 <strong>완전히 삭제</strong>됩니다.</p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <form th:action="@{/user/delete}" method="post">
+            <button type="submit" class="btn btn-danger">탈퇴하기</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</html>

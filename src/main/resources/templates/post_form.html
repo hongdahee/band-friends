@@ -1,0 +1,191 @@
+<html layout:decorate="~{layout}">
+<head>
+    <meta name="csrf-token" th:content="${_csrf.token}" />
+</head>
+<div layout:fragment="content" class="container my-3">
+<form th:object="${postForm}" method="post" enctype="multipart/form-data">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    <th:block th:if="${category=='recruitment'}">
+   <div th:replace="~{recruitment_form :: recruitmentFragment}">
+   </div>
+    </th:block>
+    <th:block th:if="${category=='band'}">
+        <input type="hidden" th:name="bandId" th:value="${bandId}" />
+    </th:block>
+    <div th:if="${category=='band'}" class="mb-3">
+        <label for="isPrivate" class="form-label">공개 설정</label>
+        <div>
+          <input type="checkbox" th:field="*{isPrivate}" class="form-check-input">
+          <span class="form-label mx-1">멤버에게만 공개</span>
+        </div>
+      </div>
+  <div class="mb-3">
+    <label for="subject" class="form-label">제목</label>
+    <input type="text" th:field="*{subject}" class="form-control" required />
+  </div>
+    <div class="mb-3">
+  <label for="content" class="form-label">내용</label>
+  <textarea th:field="*{content}" rows="10" class="form-control" required></textarea>
+    </div>
+    <!-- 기존 업로드된 미디어(수정할 때) -->
+    <th:block th:if="${modify!=null and post.mediaList != null and !post.mediaList.isEmpty()}">
+    <div id="existingMediaContainer" class="d-flex flex-wrap gap-3 mb-3">
+        <th:block th:each="media : ${post.mediaList}">
+            <div class="position-relative media-item" th:attr="data-size=${media.fileSize}">
+                <th:block th:if="${media.mediaType.name() == 'IMAGE'}">
+                    <img th:src="@{${media.filePath}}" class="rounded border" style="width: 120px; height: 120px;">
+                </th:block>
+                <th:block th:if="${media.mediaType.name() == 'VIDEO'}">
+                    <video th:src="@{${media.filePath}}" controls class="rounded border" style="width: 200px;"></video>
+                </th:block>
+                <button th:attr="data-id=${media.id}" type="button" style="font-size: 13px;" class="btn-close position-absolute top-0 end-0 delete-media-btn"></button>
+            </div>
+        </th:block>
+    </div>
+    </th:block>
+
+    <div class="mb-3">
+   <div id="previewContainer" class="mt-3 d-flex flex-wrap gap-3"></div>
+        <label for="mediaInput" class="form-label fw-semibold">📁 멀티미디어(사진, 동영상) 업로드</label>
+        <input id="mediaInput" th:field="*{mediaList}" type="file" multiple
+               class="form-control border-primary shadow-sm"
+               accept="image/*,video/*"
+               style="cursor: pointer;" />
+        <small class="form-text text-muted">이미지 또는 동영상을 여러 개 선택할 수 있어요.</small>
+    </div>
+    <button type="submit" th:text="작성" class="btn btn-primary"></button>
+  </form>
+    <script>
+       const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+       let existingMediaSize = 0;
+
+       let existingMediaCount = document.querySelectorAll('#existingMediaContainer .media-item').length;
+       document.querySelectorAll('#existingMediaContainer .media-item').forEach(item => {
+       const size = parseInt(item.getAttribute('data-size'), 10);
+       if (!isNaN(size)) {
+        existingMediaSize += size;
+            }
+       });
+
+       document.querySelectorAll('.delete-media-btn').forEach(button => {
+           button.addEventListener('click', function () {
+           const mediaId = this.getAttribute('data-id');
+           const container = this.closest('.media-item');
+           const size = parseInt(container.getAttribute('data-size'), 10);
+
+           fetch(`/media/delete/${mediaId}`, {
+               method: 'DELETE',
+               headers: {
+                   'X-CSRF-TOKEN': csrfToken,
+                   'Content-Type': 'application/json'
+               }
+           })
+           .then(response => {
+               if (response.ok) {
+                   const container = this.closest('.media-item');
+                   container.remove();
+
+                if (!isNaN(size)) {
+                    existingMediaSize -= size;
+                }
+                existingMediaCount -= 1;
+               }
+           })
+           .catch(() => {
+               alert('서버 오류로 삭제에 실패했습니다.');
+           });
+       });
+   });
+
+       const input = document.getElementById('mediaInput');
+       const preview = document.getElementById('existingMediaContainer') || document.getElementById('previewContainer');
+
+       const MAX_FILES = 10;
+       const MAX_SIZE_MB = 40;
+
+       let allFiles = [];
+
+       input.addEventListener('change', function () {
+        const files = Array.from(this.files);
+        const tmpFiles = [...allFiles, ...files];
+        const totalFiles = existingMediaCount + tmpFiles.length;
+
+          if (totalFiles > MAX_FILES) {
+              alert(`최대 ${MAX_FILES}개까지 업로드할 수 있습니다.`);
+              const dt = new DataTransfer();
+              allFiles.forEach(file => dt.items.add(file));
+              input.files = dt.files;
+              return;
+          }
+
+          const addedSize = tmpFiles.reduce((acc, f) => acc + f.size, 0);
+          const totalSize = existingMediaSize + addedSize;
+
+          if (totalSize > MAX_SIZE_MB * 1024 * 1024) {
+             alert(`전체 파일 용량이 ${MAX_SIZE_MB}MB를 초과합니다.`);
+             const dt = new DataTransfer();
+             allFiles.forEach(file => dt.items.add(file));
+             input.files = dt.files;
+             return;
+          }
+
+        // 누적 배열에 새 파일 추가
+        allFiles = tmpFiles;
+
+        // FileList는 직접 수정 불가능 -> DataTransfer로 새로 세팅
+        const dataTransfer = new DataTransfer();
+        allFiles.forEach(file => dataTransfer.items.add(file));
+        input.files = dataTransfer.files;
+
+         // 미리보기 렌더링
+         files.forEach(file => {
+           const reader = new FileReader();
+
+           reader.onload = function (e) {
+            const wrapperDiv = document.createElement('div');
+            wrapperDiv.className = 'position-relative media-item';
+
+             let element;
+             if (file.type.startsWith('image/')) {
+               element = document.createElement('img');
+               element.src = e.target.result;
+               element.className = 'rounded border';
+               element.style.width = '120px';
+               element.style.height = '120px';
+             } else if (file.type.startsWith('video/')) {
+               element = document.createElement('video');
+               element.src = e.target.result;
+               element.controls = true;
+               element.className = 'rounded border';
+               element.style.width = '200px';
+             }
+
+             const deleteBtn = document.createElement('button');
+             deleteBtn.type = 'button';
+             deleteBtn.className = 'btn-close position-absolute top-0 end-0';
+             deleteBtn.style.fontSize = '13px';
+
+             deleteBtn.addEventListener('click', function () {
+        // DOM에서 삭제
+        wrapperDiv.remove();
+
+        // allFiles에서 제거
+        allFiles = allFiles.filter(f => f !== file);
+
+        // input.files 업데이트
+        const dt = new DataTransfer();
+        allFiles.forEach(f => dt.items.add(f));
+        input.files = dt.files;
+    });
+
+            wrapperDiv.appendChild(element);
+            wrapperDiv.appendChild(deleteBtn);
+            preview.appendChild(wrapperDiv);
+           };
+
+           reader.readAsDataURL(file);
+         });
+       });
+    </script>
+</div>
+</html>
