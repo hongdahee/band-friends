@@ -4,7 +4,6 @@ import com.hdh.band_project.Authority;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.FetchType;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

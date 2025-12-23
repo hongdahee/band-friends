@@ -10,7 +10,6 @@ import com.hdh.band_project.user.SiteUser;
 import com.hdh.band_project.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -61,6 +60,7 @@ public class ManagementController {
     @GetMapping("/apply/list")
     public String getApplyList(@RequestParam("bandId") Long bandId, Model model) {
         Band band = bandService.getBand(bandId);
+
         List<MemberRecruitment> applyList = recruitmentService.getApplyList(band);
 
         model.addAttribute("applyList", applyList);
