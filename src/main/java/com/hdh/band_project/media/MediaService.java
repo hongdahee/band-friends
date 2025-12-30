@@ -87,7 +87,7 @@ public class MediaService {
         if(!media.getPost().getAuthor().getUsername().equals(username)){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제권한이 없습니다.");
         }
-        awsS3Service.deleteFile(media.getFilePath());
+//        awsS3Service.deleteFile(media.getFilePath());
         mediaRepository.delete(media);
     }
 }

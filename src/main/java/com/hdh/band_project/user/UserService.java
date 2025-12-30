@@ -113,9 +113,9 @@ public class UserService {
         if(profileUrl!=null && !profileUrl.isBlank()) {
             user.setProfileImg(profileUrl);
             userRepository.save(user);
-            if(userProfile!=null){
-                awsS3Service.deleteFile(userProfile);
-            }
+//            if(userProfile!=null){
+//                awsS3Service.deleteFile(userProfile);
+//            }
         }
     }
 
@@ -134,15 +134,15 @@ public class UserService {
 
     private void userImgDelete(SiteUser user){
         String profileUrl = user.getProfileImg();
-        if(profileUrl!=null) {
-            awsS3Service.deleteFile(user.getProfileImg());
-        }
+//        if(profileUrl!=null) {
+//            awsS3Service.deleteFile(user.getProfileImg());
+//        }
 
-        for (Post post : postService.getPostsByAuthor(user)) {
-            for (Media media : post.getMediaList()) {
-                awsS3Service.deleteFile(media.getFilePath());
-            }
-        }
+//        for (Post post : postService.getPostsByAuthor(user)) {
+//            for (Media media : post.getMediaList()) {
+//                awsS3Service.deleteFile(media.getFilePath());
+//            }
+//        }
     }
 
     private void logout(HttpServletRequest request, HttpServletResponse response){
