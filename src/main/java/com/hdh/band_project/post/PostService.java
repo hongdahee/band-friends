@@ -99,9 +99,9 @@ public class PostService {
         postRepository.delete(post);
 
         List<Media> mediaList = post.getMediaList();
-//        for(Media media : mediaList){
-//            awsS3Service.deleteFile(media.getFilePath());
-//        }
+        for(Media media : mediaList){
+            awsS3Service.deleteFile(media.getFileName());
+        }
     }
 
     public Page<Post> getBandPosts(Long bandId, int page) {

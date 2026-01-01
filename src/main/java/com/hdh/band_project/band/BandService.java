@@ -99,9 +99,9 @@ public class BandService {
             if(profileUrl!=null && !profileUrl.isBlank()) {
                 band.setProfileImg(profileUrl);
                 bandRepository.save(band);
-//                if (originalProfileUrl != null) {
-//                    awsS3Service.deleteFile(originalProfileUrl);
-//                }
+                if (originalProfileUrl != null) {
+                    awsS3Service.deleteProfileImg(originalProfileUrl);
+                }
             }
         }
     }
@@ -153,17 +153,17 @@ public class BandService {
         postService.deleteByBand(band);
         bandRepository.delete(band);
         if(band.getProfileImg()!=null && !band.getProfileImg().isBlank()) {
-//            awsS3Service.deleteFile(band.getProfileImg());
-//            deleteBandPostsImg(band);
+            awsS3Service.deleteProfileImg(band.getProfileImg());
+            deleteBandPostsImg(band);
         }
     }
 
-//    private void deleteBandPostsImg(Band band){
-//        List<Post> postList = postService.getPostsByBand(band);
-//        for(Post post : postList){
-//            for(Media media : post.getMediaList()){
-//                awsS3Service.deleteFile(media.getFilePath());
-//            }
-//        }
-//    }
+    private void deleteBandPostsImg(Band band){
+        List<Post> postList = postService.getPostsByBand(band);
+        for(Post post : postList){
+            for(Media media : post.getMediaList()){
+                awsS3Service.deleteFile(media.getFileName());
+            }
+        }
+    }
 }
