@@ -30,7 +30,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
   <script>
     const chatRoomId = [[${id}]];
-    const socket = new WebSocket("http://localhost:8081/chat/websocket");
+    const socket = new WebSocket("https://band-friends-production.up.railway.app/chat/websocket");
     const stompClient = Stomp.over(socket);
     const currentUserId = '[[${user.uniqueId}]]';
 
