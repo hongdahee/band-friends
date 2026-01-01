@@ -32,7 +32,7 @@
   <script type="text/javascript" th:src="'//dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapApiKey} + '&libraries=services,clusterer,drawing'"></script>
   <script>
     const script = document.createElement("script");
-    script.src = `http://dapi.kakao.com/v2/maps/sdk.js?appkey=[[${kakaoMapApiKey}]]&autoload=false&libraries=clusterer,services&`;
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=[[${kakaoMapApiKey}]]&autoload=false&libraries=clusterer,services&`;
     document.head.appendChild(script);
 
     script.onload = () => {
