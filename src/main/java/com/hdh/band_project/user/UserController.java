@@ -122,7 +122,7 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/account/edit")
     public String accountEdit(){
-        return "/user/account_edit";
+        return "user/account_edit";
     }
 
     @PreAuthorize("isAuthenticated()")
