@@ -88,7 +88,7 @@ public class UserController {
     public String userInfo(Model model, @PathVariable("uniqueId") String uniqueId){
         SiteUser user = userService.getUserByUniqueId(uniqueId);
         model.addAttribute("user", user);
-        return "/user/user_info";
+        return "user/user_info";
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -97,7 +97,7 @@ public class UserController {
         SiteUser user = userService.getUser(principal.getName());
         userEditForm.setNickname(user.getNickname());
         model.addAttribute("user", user);
-        return "/user/info_edit";
+        return "user/info_edit";
     }
 
     @PreAuthorize("isAuthenticated()")
