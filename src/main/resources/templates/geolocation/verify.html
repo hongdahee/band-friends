@@ -16,7 +16,8 @@
         위치 인증 후 다양한 기능을 사용해 보세요!
     </p>
     <div class="alert alert-warning" role="alert">
-        * 데스크탑에선 위치 정확도가 떨어질 수 있습니다. 정확한 위치 인증을 위해 스마트폰으로 진행하는 것을 권장드립니다.
+        * 모바일 브라우저 특성상 위치 인증이 원활하지 않을 수 있습니다.
+        인증이 되지 않는 경우 데스크탑에서 다시 시도해 주세요.
     </div>
     <h4 class="mt-5" id="locationTitle" style="display: none;">우리 동네는...</h4>
     <p id="address" class="form-control mt-4" style="display: none;">위치가 인증되지 않았습니다.</p>
@@ -28,54 +29,104 @@
         <input type="hidden" name="lon" id="lonInput" />
         <button type="submit" class="btn btn-success mt-3" style="display: none;" id="completeBtn">위치 저장</button>
     </form>
+
+    <div id="ios-location-guide" style="display:none; padding:16px; border-radius:12px; background:#f9f9f9; border:1px solid #ddd;">
+        <h3 style="margin-top:0;">📍 모바일(ios) 위치 설정 확인</h3>
+
+        <ol style="padding-left:20px; line-height:1.6;">
+            <li>
+                <strong>설정 → Safari → 위치 → 묻기 또는 허용</strong>
+            </li>
+            <li>
+                <strong>설정 → 개인정보 보호 및 보안 → 위치 서비스 → Safari → 묻기 또는 앱을 사용하는 동안 허용</strong>
+            </li>
+        </ol>
+
+        <p style="font-size:14px; color:#666; margin-top:12px;">
+            설정 변경 후 새로고침 한 뒤 다시 시도해주세요.
+        </p>
+
+        <button onclick="closeGuide()" style="margin-top:12px; padding:10px 14px;">
+            확인
+        </button>
+    </div>
+
     <script type="text/javascript" th:src="'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapApiKey}"></script>
     <script>
-        // 지도 생성
-        var mapContainer = document.getElementById('map'),
-        mapOption = {
-        center: new kakao.maps.LatLng(37.566826, 126.9786567), // 지도의 중심좌표
-        level: 3 // 지도의 확대 레벨
-        };
+        // ios 알림 팝업창
+        function isIOSSafari() {
+   const ua = navigator.userAgent;
+   const isIOS = /iPhone|iPad|iPod/.test(ua);
+   const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+   return isIOS && isSafari;
+ }
 
-        var map = new kakao.maps.Map(mapContainer, mapOption);
+ function showIOSLocationGuide() {
+   if (isIOSSafari()) {
+     document.getElementById("ios-location-guide").style.display = "block";
+   }
+ }
+
+ function closeGuide() {
+   document.getElementById("ios-location-guide").style.display = "none";
+ }
+
+       // 지도 생성
+       var mapContainer = document.getElementById('map'),
+       mapOption = {
+       center: new kakao.maps.LatLng(37.566826, 126.9786567), // 지도의 중심좌표
+       level: 3 // 지도의 확대 레벨
+       };
+
+       var map = new kakao.maps.Map(mapContainer, mapOption);
 
 let lat;
 let lon;
 document.getElementById('locationAuthBtn').addEventListener('click', () => {
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            lat = position.coords.latitude;
-            lon = position.coords.longitude;
+   navigator.geolocation.getCurrentPosition(
+       (position) => {
+           lat = position.coords.latitude;
+           lon = position.coords.longitude;
 
-            const newCenter = new kakao.maps.LatLng(lat, lon);
+           const newCenter = new kakao.maps.LatLng(lat, lon);
 
-            fetch(`/geo/address?lat=${lat}&lon=${lon}`)
-                .then(response => response.text())
-                .then(address => {
-                    document.getElementById('address').innerText = address;
-                    document.getElementById('completeBtn').style.display = 'inline-block';
-                    document.getElementById('locationTitle').style.display = 'block';
-                    document.getElementById('address').style.display = 'block';
-                    if(navigator.geolocation){
-                    mapContainer.style.display = 'block';
-                    map.relayout();
-                    var locPosition = new kakao.maps.LatLng(lat, lon);
-                    displayMarker(locPosition);
-                    }
-                    else{
-                        var locPosition = new kakao.maps.LatLng(33.450701, 126.570667);
-                        displayMarker(locPosition);
-                    }
-                })
-                .catch(error => {
-                    console.error('주소를 가져오는 데 오류가 발생했습니다:', error);
-                    document.getElementById('address').innerText = '주소를 가져오는 데 실패했습니다.';
-                });
-        },
-        (error) => {
-            alert('위치 권한이 필요합니다.');
-        }
-    );
+           fetch(`/geo/address?lat=${lat}&lon=${lon}`)
+               .then(response => response.text())
+               .then(address => {
+                   document.getElementById('address').innerText = address;
+                   document.getElementById('completeBtn').style.display = 'inline-block';
+                   document.getElementById('locationTitle').style.display = 'block';
+                   document.getElementById('address').style.display = 'block';
+                   if(navigator.geolocation){
+                   mapContainer.style.display = 'block';
+                   map.relayout();
+                   var locPosition = new kakao.maps.LatLng(lat, lon);
+                   displayMarker(locPosition);
+                   }
+                   else{
+                       var locPosition = new kakao.maps.LatLng(33.450701, 126.570667);
+                       displayMarker(locPosition);
+                   }
+               })
+               .catch(error => {
+                   console.error('주소를 가져오는 데 오류가 발생했습니다:', error);
+                   document.getElementById('address').innerText = '주소를 가져오는 데 실패했습니다.';
+               });
+       },
+       (error) => {
+           if (isIOSSafari()) {
+      showIOSLocationGuide();
+    } else {
+      alert("위치 권한 허용이 필요합니다.");
+    }
+  },
+  {
+    enableHighAccuracy: true,
+    timeout: 15000,
+    maximumAge: 0
+  }
+       }
+   );
 });
 
 document.getElementById('completeBtn').addEventListener('click', () => {
